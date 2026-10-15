@@ -1,26 +1,49 @@
-# Candidate kit
+# Employee Attendance Analytics API
 
-Read in this order:
+FastAPI and MongoDB service for employee attendance, punch events, audit corrections, and analytics.
 
-1. `PROBLEM_STATEMENT.docx`: what you are asked to do, how it is evaluated.
-2. `openapi.yaml`: the API contract and the business rules (R1 - R10).
-3. `DATA_MODEL.md`: what is stored in MongoDB, with nine sample documents.
-4. `app/main.py`: the starter. Put **all** your code in this one file. It must start with `uvicorn app.main:app --port 8000`.
-5. `REVIEW.md`, `DECISIONS.md`: templates to fill in.
+## Run locally
 
-`sample_data/` holds the nine sample documents as MongoDB Extended JSON; `sample_seed.py` loads them. The grader's dataset is
-much larger and contains cases they do not show.
+Requirements: Python 3.11+, MongoDB 6.0+ (the evaluator uses MongoDB 7).
 
-## Local setup
-```bash
-python -m venv .venv && source .venv/bin/activate
+PowerShell:
+
+```powershell
+python -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env            # set MONGO_URI / MONGO_DB (local docker: docker run -p 27017:27017 mongo:7)
-python sample_seed.py
-uvicorn app.main:app --port 8000 --reload
 ```
-MongoDB **6.0 or newer** is required (the grader uses 7.0). MongoDB Atlas free tier (M0) works.
 
-## Submit
-A public Git repository with `app/main.py`, `requirements.txt`, `REVIEW.md`, `DECISIONS.md` and a short `README.md`.
-No `.env`, no secrets, no Dockerfile.
+Set `MONGO_URI` and `MONGO_DB` in `.env` or in the environment. For local MongoDB with Docker:
+
+```powershell
+docker run -d --name attendance-mongo -p 27017:27017 mongo:7
+```
+
+Start the API from the repository root:
+
+```powershell
+python -m uvicorn app.main:app --port 8000
+```
+
+Readiness check:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+## Implementation notes
+
+- All instants cross the API boundary as epoch milliseconds and are stored as UTC BSON dates.
+- Attendance dates and shifts follow IST, including overnight shifts.
+- Duplicate employee and attendance natural keys are protected by unique MongoDB indexes.
+- Analytics use MongoDB aggregation pipelines and stored derived values.
+- `REVIEW.md` records starter defects and their fixes; `DECISIONS.md` explains the main design choices.
+
+## Local verification
+
+```powershell
+.\\.venv\\Scripts\\python.exe -m py_compile app/main.py
+```
+
+The full evaluator dataset is not included in this repository. Edge cases such as overnight shifts, missing logs, ties, weekends, and mid-month joiners should be tested against a MongoDB dataset before submission.

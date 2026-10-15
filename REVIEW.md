@@ -23,6 +23,10 @@ List every defect you found in the starter `app/main.py` (helpers and endpoints)
 | 17 | `punch_out` | Missing endpoint meant punch-outs were unsupported. | POST to `/attendance/punch-out` returned 404. | Added atomic punch-out implementation with R3-R5 calculations. |
 | 18 | Missing regularization endpoint | Manual corrections and audit history were unsupported. | PATCH to an attendance record returned 404. | Added validation, derived-field recomputation, and history append. |
 | 19 | Missing employee monthly analytics | Monthly attendance summary endpoint was unimplemented. | GET `/analytics/employees/{emp_code}/monthly` returned 404. | Added a MongoDB aggregation with joined-on working-day calculation and stored derived values. |
+| 20 | Missing department summary | Cross-collection department analytics endpoint was unimplemented. | GET `/analytics/departments/summary` returned 404. | Added an employee-first aggregation so zero-log employees count in headcount and logs are summarized per record. |
+| 21 | Missing late leaderboard | Late ranking endpoint was unimplemented. | GET `/analytics/leaderboard/late` returned 404. | Added aggregation with employee join, MongoDB `$rank`, tie-preserving limit, and deterministic ordering. |
+| 22 | Missing department trend | Daily gap-filled trend endpoint was unimplemented. | GET `/analytics/departments/{department}/trend` returned 404. | Added a database-generated day series, headcount/log lookups, and a seven-row window average. |
+| 23 | Missing explain endpoint | There was no way to verify query plans or index use. | GET `/admin/explain/{endpoint}` returned 404. | Added execution-stats explain responses and endpoint-specific input validation. |
 
 Not defects: MongoDB's internal `_id` is intentionally excluded from employee responses; `emp_code` is the public identity according to the contract.
 
