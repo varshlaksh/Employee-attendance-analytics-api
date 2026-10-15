@@ -27,7 +27,11 @@ List every defect you found in the starter `app/main.py` (helpers and endpoints)
 | 21 | Missing late leaderboard | Late ranking endpoint was unimplemented. | GET `/analytics/leaderboard/late` returned 404. | Added aggregation with employee join, MongoDB `$rank`, tie-preserving limit, and deterministic ordering. |
 | 22 | Missing department trend | Daily gap-filled trend endpoint was unimplemented. | GET `/analytics/departments/{department}/trend` returned 404. | Added a database-generated day series, headcount/log lookups, and a seven-row window average. |
 | 23 | Missing explain endpoint | There was no way to verify query plans or index use. | GET `/admin/explain/{endpoint}` returned 404. | Added execution-stats explain responses and endpoint-specific input validation. |
+| 24 | `compute_late_minutes` | It floored minutes before checking the 10-minute grace period, so 10:00:01 late could incorrectly become 0. | Test a 09:30 shift with a 09:40:01 punch-in. | Compare elapsed seconds to 600 first, then floor the late minutes. |
+| 25 | `compute_work_hours` | Python `round()` uses binary floating-point and banker's rounding, not the required decimal half-up rule. | Use a duration exactly at a half-cent boundary. | Use `Decimal` with `ROUND_HALF_UP` to two decimals. |
+| 26 | `compute_overtime` | Shift end was always built on the attendance date, so overnight shifts calculated overtime against the wrong day. | Punch out after 06:00 for a 22:00-06:00 shift. | Move the shift end to the next day when `shift_end <= shift_start`. |
+| 27 | `EmployeeIn` validation | The starter accepted invalid employee codes, dates, emails, shift times, and equal shift boundaries. | Submit malformed fields or equal shift start/end values. | Added Pydantic constraints and cross-field validation. |
+| 28 | Employee/attendance query setup | The starter created no supporting indexes, despite list and analytics endpoints needing to stay fast at scale. | Inspect indexes or run explain on a large dataset. | Create idempotent unique and query/sort indexes at startup. |
 
-Not defects: MongoDB's internal `_id` is intentionally excluded from employee responses; `emp_code` is the public identity according to the contract.
+Not defects: MongoDB's internal `_id` is intentionally excluded from API responses; `emp_code` is the public identity according to the contract. The health endpoint correctly returns 503 when MongoDB cannot answer, and missing `ABSENT`/`LEAVE` creation endpoints are intentional because those records are seeded or created by regularization.
 
-Also note anything you looked at and decided was **not** a defect, and why.
